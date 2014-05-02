@@ -1,0 +1,35 @@
+===================================
+ Frequent itemsets (min_supp=5.0%)
+===================================
+['$100,000+', 'master'], 22.979%
+['master', '$50,000-$75,000'], 15.501%
+['master', 'DEPT OF HEALTH/MENTAL HYGIENE'], 12.425%
+['bachelor', '$50,000-$75,000'], 11.761%
+['DEPT OF HEALTH/MENTAL HYGIENE', '$50,000-$75,000'], 11.098%
+['$100,000+', 'license'], 9.71%
+['bachelor', '$25,000-$50,000'], 8.745%
+['DEPT OF ENVIRONMENT PROTECTION', 'license'], 8.504%
+['master', 'DEPT OF HEALTH/MENTAL HYGIENE', '$50,000-$75,000'], 8.263%
+['$100,000+', 'bachelor'], 7.419%
+['$100,000+', 'DEPT OF HEALTH/MENTAL HYGIENE'], 7.238%
+['DEPT OF ENVIRONMENT PROTECTION', '$50,000-$75,000'], 6.936%
+['high school', '$25,000-$50,000'], 6.634%
+['DEPT OF ENVIRONMENT PROTECTION', 'bachelor'], 6.574%
+['bachelor', 'DEPT OF ENVIRONMENT PROTECTION'], 6.574%
+['$100,000+', 'DEPT OF ENVIRONMENT PROTECTION'], 6.454%
+['license', '$50,000-$75,000'], 6.393%
+['master', 'license'], 5.971%
+['bachelor', 'DEPT OF HEALTH/MENTAL HYGIENE'], 5.911%
+['DEPT OF ENVIRONMENT PROTECTION', 'master'], 5.669%
+['bachelor', 'license'], 5.428%
+
+====================================================
+ High-confidence association rules (min_conf=50.0%)
+====================================================
+['DEPT OF HEALTH/MENTAL HYGIENE', '$50,000-$75,000'] => ['master'] (Conf: 74.457%, Supp: 8.263%)
+['master', 'DEPT OF HEALTH/MENTAL HYGIENE'] => ['$50,000-$75,000'] (Conf: 66.505%, Supp: 8.263%)
+['high school'] => ['$25,000-$50,000'] (Conf: 60.109%, Supp: 6.634%)
+['master'] => ['$100,000+'] (Conf: 58.796%, Supp: 22.979%)
+['$100,000+'] => ['master'] (Conf: 57.293%, Supp: 22.979%)
+['master', '$50,000-$75,000'] => ['DEPT OF HEALTH/MENTAL HYGIENE'] (Conf: 53.307%, Supp: 8.263%)
+['DEPT OF HEALTH/MENTAL HYGIENE'] => ['master'] (Conf: 53.23%, Supp: 12.425%)

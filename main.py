@@ -1,6 +1,7 @@
 import itertools
 import csv
 from operator import itemgetter
+import sys
 
 #============================================
 # Helper functions for parsing NYC jobs data
@@ -49,7 +50,8 @@ def subset_count(data, subset):
 
 def other_sets(relevant_items, element):
     other = []
-    for item in relevant_items:
+    for ele in relevant_items:
+        item = ele[0]
         if item != element:
             other.append(item)
 
@@ -58,7 +60,8 @@ def other_sets(relevant_items, element):
 def form_supersets(relevant_items):
     superset = set()
     all_same = True
-    for item in relevant_items:
+    for ele in relevant_items:
+        item = ele[0]
         for oset in other_sets(relevant_items, item):
             for index in range(len(item)-1):
                 if oset[index] != item[index]:
@@ -105,8 +108,9 @@ def apriori_algorithm(data, min_supp):
     while True:
         relevant_items = []
         for key in supersets:
-            if (subset_count(data, key) / total_rows) >= min_supp:
-                relevant_items.append(list(key))
+            support = subset_count(data, key) / total_rows
+            if support >= min_supp:
+                relevant_items.append((list(key), support))
         if relevant_items == []:
             break
         else:
@@ -115,50 +119,71 @@ def apriori_algorithm(data, min_supp):
 
     return datasets
 
-#===============================================
-# Parse relevant information from NYC jobs data
-#===============================================
-nyc_data = []
-cleaned_nyc_data = []
+#====================
+# Main program logic
+#====================
+if len(sys.argv) == 4:
 
-with open('NYC_Jobs.csv', 'rb') as csvfile:
-    reader = csv.reader(csvfile)
-    for row in reader:
-        nyc_data.append(row)
+    filename = sys.argv[1]
+    min_supp = float(sys.argv[2])
+    min_conf = float(sys.argv[3])
 
-        agency = row[1]
-        qualifications = row[14]
-        salary_range_from = row[8]
-        salary_range_to = row[9]
-        salary_frequency = row[10]
+    #===============================================
+    # Parse relevant information from NYC jobs data
+    #===============================================
+    nyc_data = []
+    cleaned_nyc_data = []
 
-        try: 
-            entry = []
-            entry.append(agency)
-            entry += parse_requirements(qualifications)
-            entry.append(salary_buckets(salary_range_from, salary_range_to, salary_frequency))
-            cleaned_nyc_data.append(entry)
-        except:
-            pass
+    with open(filename, 'rb') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            nyc_data.append(row)
 
-#===================================================================================
-# Given minimum support and confidence, write datasets and relations to output file
-#===================================================================================
-min_supp = .05   
-min_conf = .5
+            agency = row[1]
+            qualifications = row[14]
+            salary_range_from = row[8]
+            salary_range_to = row[9]
+            salary_frequency = row[10]
 
-input_data = cleaned_nyc_data
-apriori_passes = apriori_algorithm(input_data, min_supp)
-relations = set()
+            try: 
+                entry = []
+                entry.append(agency)
+                entry += parse_requirements(qualifications)
+                entry.append(salary_buckets(salary_range_from, salary_range_to, salary_frequency))
+                cleaned_nyc_data.append(entry)
+            except:
+                pass
 
-for ap in apriori_passes[1:]:
-    for ele in ap:
-        possible_left = groupings(ele)
-        for left in possible_left:
-            possible_right = set(ele).difference(set(left))
-            if possible_right:
-                relations.add((left, tuple(possible_right), confidence(input_data, left, tuple(possible_right))))
+    #===========================================================================================
+    # Given minimum support and confidence, write itemsets and association rules to output file
+    #===========================================================================================
+    input_data = cleaned_nyc_data
+    apriori_passes = apriori_algorithm(input_data, min_supp)
+    assoc_rules = set()
 
-for relation in sorted(list(relations), key=itemgetter(2), reverse=True):
-    if relation[2] >= min_conf:
-        print relation
+    itemsets = []
+    for ap in apriori_passes[1:]:
+        for itemset in ap:
+            itemsets.append(itemset)
+            possible_left = groupings(itemset[0])
+            for left in possible_left:
+                possible_right = set(itemset[0]).difference(set(left))
+                if possible_right:
+                    assoc_rules.add((left, tuple(possible_right), confidence(input_data, left, tuple(possible_right)), itemset[1]))
+
+    output_file = open('output.txt', 'w')
+    output_file.write('===================================\n')
+    output_file.write(' Frequent itemsets (min_supp=' + str(min_supp * 100) + '%)\n')
+    output_file.write('===================================\n')
+    for itemset in sorted(itemsets, key=itemgetter(1), reverse=True):
+        output_file.write(str(itemset[0]) + ', ' + str(round((itemset[1] * 100),3)) + '%\n')
+
+    output_file.write('\n====================================================\n')
+    output_file.write(' High-confidence association rules (min_conf=' + str(min_conf * 100) + '%)\n')
+    output_file.write('====================================================\n')
+    for assoc_rule in sorted(list(assoc_rules), key=itemgetter(2), reverse=True):
+        if assoc_rule[2] >= min_conf:
+            output_file.write(str(list(assoc_rule[0])) + ' => ' + str(list(assoc_rule[1])) + ' (Conf: ' + str(round((assoc_rule[2] * 100),3)) + '%, Supp: ' + str(round((assoc_rule[3] * 100),3)) + '%)\n')
+
+else:
+    print 'Usage: python main.py <INPUT_DATA_FILE> <MIN_SUPP> <MIN_CONF>'
